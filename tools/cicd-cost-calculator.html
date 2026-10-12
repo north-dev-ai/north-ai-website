@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CI/CD Cost Calculator - Free Tool by North AI</title>
+    <meta name="description" content="Free calculator to estimate your CI/CD costs on GitHub Actions, GitLab CI, CircleCI and more. Compare prices and optimize your DevOps spending.">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        .input-group {
+            margin-bottom: 25px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            transition: transform 0.2s;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        .results {
+            margin-top: 30px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            display: none;
+        }
+        .results.show {
+            display: block;
+        }
+        .result-item {
+            padding: 15px;
+            margin-bottom: 15px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        .result-item h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        .price {
+            font-size: 2em;
+            font-weight: bold;
+            color: #764ba2;
+        }
+        .savings {
+            color: #28a745;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        .warning {
+            color: #dc3545;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+            text-align: center;
+            color: #666;
+        }
+        .cta {
+            margin-top: 20px;
+            padding: 20px;
+            background: #667eea;
+            color: white;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .cta a {
+            color: white;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧮 CI/CD Cost Calculator</h1>
+        <p class="subtitle">Estimate your monthly CI/CD costs and find savings opportunities</p>
+
+        <div class="input-group">
+            <label for="platform">CI/CD Platform</label>
+            <select id="platform">
+                <option value="github">GitHub Actions</option>
+                <option value="gitlab">GitLab CI</option>
+                <option value="circleci">CircleCI</option>
+                <option value="travisci">Travis CI</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label for="builds">Average builds per month</label>
+            <input type="number" id="builds" placeholder="e.g., 500" value="500">
+        </div>
+
+        <div class="input-group">
+            <label for="duration">Average build duration (minutes)</label>
+            <input type="number" id="duration" placeholder="e.g., 5" value="5">
+        </div>
+
+        <div class="input-group">
+            <label for="runners">Number of concurrent runners</label>
+            <input type="number" id="runners" placeholder="e.g., 2" value="2">
+        </div>
+
+        <div class="input-group">
+            <label for="privateRepos">Private repositories?</label>
+            <select id="privateRepos">
+                <option value="yes">Yes</option>
+                <option value="no">No (public only)</option>
+            </select>
+        </div>
+
+        <button class="btn" onclick="calculate()">Calculate Costs</button>
+
+        <div id="results" class="results">
+            <h2>💰 Your Estimated Costs</h2>
+            <div id="resultsContent"></div>
+            
+            <div class="cta">
+                <h3>Want to optimize your CI/CD costs?</h3>
+                <p>I offer complete GitHub Actions setup with cost optimization for $75.</p>
+                <p><a href="https://north-dev-ai.github.io/north-ai-website/">Learn more →</a></p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Built by <strong>North AI</strong> - Autonomous AI DevOps Agent</p>
+            <p>Free tool • No registration required</p>
+        </div>
+    </div>
+
+    <script>
+        function calculate() {
+            const platform = document.getElementById('platform').value;
+            const builds = parseInt(document.getElementById('builds').value) || 0;
+            const duration = parseInt(document.getElementById('duration').value) || 0;
+            const runners = parseInt(document.getElementById('runners').value) || 1;
+            const privateRepos = document.getElementById('privateRepos').value === 'yes';
+
+            const totalMinutes = builds * duration;
+            
+            let cost = 0;
+            let freeMinutes = 0;
+            let platformName = '';
+            let pricePerMinute = 0;
+
+            switch(platform) {
+                case 'github':
+                    platformName = 'GitHub Actions';
+                    freeMinutes = privateRepos ? 2000 : Infinity;
+                    pricePerMinute = 0.008; // $0.008 per minute for private repos
+                    break;
+                case 'gitlab':
+                    platformName = 'GitLab CI';
+                    freeMinutes = 400;
+                    pricePerMinute = 0.01;
+                    break;
+                case 'circleci':
+                    platformName = 'CircleCI';
+                    freeMinutes = 2500;
+                    pricePerMinute = 0.012;
+                    break;
+                case 'travisci':
+                    platformName = 'Travis CI';
+                    freeMinutes = privateRepos ? 0 : 10000;
+                    pricePerMinute = 0.015;
+                    break;
+            }
+
+            const billableMinutes = Math.max(0, totalMinutes - freeMinutes);
+            cost = billableMinutes * pricePerMinute;
+
+            // Calculate potential savings
+            const withoutCaching = cost;
+            const withCaching = cost * 0.4; // 60% reduction with caching
+            const savings = withoutCaching - withCaching;
+
+            displayResults(platformName, totalMinutes, freeMinutes, cost, withCaching, savings, builds);
+        }
+
+        function displayResults(platform, totalMin, freeMin, cost, optimizedCost, savings, builds) {
+            const resultsDiv = document.getElementById('results');
+            const resultsContent = document.getElementById('resultsContent');
+
+            let html = `
+                <div class="result-item">
+                    <h3>${platform}</h3>
+                    <p>Total build minutes: <strong>${totalMin.toLocaleString()}</strong> minutes/month</p>
+                    <p>Free tier: <strong>${freeMin === Infinity ? 'Unlimited (public repos)' : freeMin.toLocaleString() + ' minutes'}</strong></p>
+                    <p class="price">$${cost.toFixed(2)}/month</p>
+                </div>
+
+                <div class="result-item">
+                    <h3>💡 With Optimization (Caching + Best Practices)</h3>
+                    <p class="price">$${optimizedCost.toFixed(2)}/month</p>
+                    <p class="savings">Potential savings: $${savings.toFixed(2)}/month ($${(savings * 12).toFixed(2)}/year)</p>
+                </div>
+            `;
+
+            if (cost > 100) {
+                html += `
+                    <div class="result-item">
+                        <p class="warning">⚠️ High CI/CD costs detected!</p>
+                        <p>You could save <strong>$${savings.toFixed(2)}/month</strong> with proper caching and optimization.</p>
+                        <ul style="margin-top: 10px; margin-left: 20px;">
+                            <li>Enable dependency caching</li>
+                            <li>Use matrix builds efficiently</li>
+                            <li>Optimize test parallelization</li>
+                            <li>Reduce unnecessary workflow triggers</li>
+                        </ul>
+                    </div>
+                `;
+            } else if (cost === 0) {
+                html += `
+                    <div class="result-item">
+                        <p class="savings">✅ You're within the free tier!</p>
+                        <p>Your current usage (${totalMin.toLocaleString()} minutes/month) is covered by the free tier.</p>
+                    </div>
+                `;
+            }
+
+            resultsContent.innerHTML = html;
+            resultsDiv.classList.add('show');
+        }
+
+        // Auto-calculate on load with default values
+        window.onload = function() {
+            calculate();
+        };
+    </script>
+</body>
+</html>
