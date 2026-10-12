@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Free Dockerfile generator for Node.js apps. Production-ready multi-stage builds with security hardening in seconds.">
+    <title>Node.js Dockerfile Generator - Free Tool by North AI</title>
+    <link rel="canonical" href="https://north-dev-ai.github.io/north-ai-website/tools/dockerfile-generator.html">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        h1 { color: #667eea; margin-bottom: 10px; }
+        .subtitle { color: #666; margin-bottom: 30px; }
+        .form-group {
+            margin-bottom: 25px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .checkbox-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            font-weight: normal;
+        }
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            margin-right: 8px;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        .output {
+            margin-top: 30px;
+            display: none;
+        }
+        .output h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        pre {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+        .copy-btn {
+            background: #28a745;
+            padding: 10px 20px;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+        .copy-btn:hover {
+            background: #218838;
+        }
+        .back-link {
+            display: inline-block;
+            color: #667eea;
+            text-decoration: none;
+            margin-bottom: 20px;
+        }
+        .info {
+            background: #f0f7ff;
+            padding: 15px;
+            border-left: 4px solid #667eea;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">← Back to North AI</a>
+        
+        <h1>🐳 Node.js Dockerfile Generator</h1>
+        <p class="subtitle">Generate production-ready Dockerfiles with multi-stage builds and security hardening</p>
+
+        <div class="info">
+            <strong>⚡ Features:</strong> Multi-stage builds, non-root user, health checks, optimized caching
+        </div>
+
+        <form id="dockerfileForm">
+            <div class="form-group">
+                <label for="appName">App Name</label>
+                <input type="text" id="appName" value="my-nodejs-app" required>
+            </div>
+
+            <div class="form-group">
+                <label for="nodeVersion">Node.js Version</label>
+                <select id="nodeVersion">
+                    <option value="22">22 LTS (Latest)</option>
+                    <option value="20">20 LTS</option>
+                    <option value="18">18 LTS</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="port">Port</label>
+                <input type="number" id="port" value="3000" required>
+            </div>
+
+            <div class="form-group">
+                <label for="buildCommand">Build Command</label>
+                <input type="text" id="buildCommand" value="npm run build" placeholder="e.g., npm run build or tsc">
+            </div>
+
+            <div class="form-group">
+                <label for="startCommand">Start Command</label>
+                <input type="text" id="startCommand" value="node dist/index.js" required>
+            </div>
+
+            <div class="form-group">
+                <label>Optional Features</label>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" id="healthCheck" checked> Health Check</label>
+                    <label><input type="checkbox" id="nonRoot" checked> Non-root User</label>
+                    <label><input type="checkbox" id="multiStage" checked> Multi-stage Build</label>
+                </div>
+            </div>
+
+            <button type="submit">Generate Dockerfile</button>
+        </form>
+
+        <div class="output" id="output">
+            <h2>Your Dockerfile</h2>
+            <pre id="dockerfile"></pre>
+            <button class="copy-btn" onclick="copyDockerfile()">📋 Copy to Clipboard</button>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('dockerfileForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            generateDockerfile();
+        });
+
+        function generateDockerfile() {
+            const appName = document.getElementById('appName').value;
+            const nodeVersion = document.getElementById('nodeVersion').value;
+            const port = document.getElementById('port').value;
+            const buildCommand = document.getElementById('buildCommand').value;
+            const startCommand = document.getElementById('startCommand').value;
+            const healthCheck = document.getElementById('healthCheck').checked;
+            const nonRoot = document.getElementById('nonRoot').checked;
+            const multiStage = document.getElementById('multiStage').checked;
+
+            let dockerfile = '';
+
+            if (multiStage) {
+                dockerfile = `# Build stage
+FROM node:${nodeVersion}-alpine AS builder
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci --only=production
+
+# Copy source
+COPY . .
+
+# Build application
+${buildCommand ? `RUN ${buildCommand}` : '# No build step'}
+
+# Production stage
+FROM node:${nodeVersion}-alpine
+WORKDIR /app
+`;
+
+                if (nonRoot) {
+                    dockerfile += `
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \\
+    adduser -S nodejs -u 1001
+`;
+                }
+
+                dockerfile += `
+# Copy from builder
+COPY --from=builder${nonRoot ? ' --chown=nodejs:nodejs' : ''} /app/node_modules ./node_modules
+COPY --from=builder${nonRoot ? ' --chown=nodejs:nodejs' : ''} /app/dist ./dist
+COPY --from=builder${nonRoot ? ' --chown=nodejs:nodejs' : ''} /app/package*.json ./
+`;
+
+                if (nonRoot) {
+                    dockerfile += `
+# Switch to non-root user
+USER nodejs
+`;
+                }
+
+            } else {
+                dockerfile = `FROM node:${nodeVersion}-alpine
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci --only=production
+
+# Copy source
+COPY . .
+`;
+
+                if (buildCommand) {
+                    dockerfile += `
+# Build application
+RUN ${buildCommand}
+`;
+                }
+
+                if (nonRoot) {
+                    dockerfile += `
+# Create and switch to non-root user
+RUN addgroup -g 1001 -S nodejs && \\
+    adduser -S nodejs -u 1001 && \\
+    chown -R nodejs:nodejs /app
+
+USER nodejs
+`;
+                }
+            }
+
+            dockerfile += `
+# Expose port
+EXPOSE ${port}
+`;
+
+            if (healthCheck) {
+                dockerfile += `
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s \\
+  CMD node -e "require('http').get('http://localhost:${port}/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"
+`;
+            }
+
+            dockerfile += `
+# Start application
+CMD ["${startCommand.split(' ')[0]}"${startCommand.split(' ').slice(1).map(arg => `, "${arg}"`).join('')}]
+`;
+
+            document.getElementById('dockerfile').textContent = dockerfile;
+            document.getElementById('output').style.display = 'block';
+            document.getElementById('output').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function copyDockerfile() {
+            const dockerfile = document.getElementById('dockerfile').textContent;
+            navigator.clipboard.writeText(dockerfile).then(() => {
+                const btn = document.querySelector('.copy-btn');
+                const originalText = btn.textContent;
+                btn.textContent = '✅ Copied!';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
