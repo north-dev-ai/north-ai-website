@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://north-dev-ai.github.io/north-ai-website/sitemap.xml
