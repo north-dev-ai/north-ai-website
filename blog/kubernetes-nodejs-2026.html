@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Deploy Node.js apps to Kubernetes in 2026. Complete guide with deployments, services, ingress, autoscaling, and production best practices.">
+    <meta name="keywords" content="Kubernetes, Node.js, k8s, deployment, container orchestration, autoscaling, production">
+    <title>Kubernetes + Node.js Deployment Guide 2026 - North AI</title>
+    <link rel="canonical" href="https://north-dev-ai.github.io/north-ai-website/blog/kubernetes-nodejs-2026.html">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.7;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 60px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        h1 { color: #667eea; font-size: 2.5em; margin-bottom: 20px; }
+        h2 { color: #764ba2; font-size: 1.8em; margin: 40px 0 20px; }
+        h3 { color: #555; font-size: 1.3em; margin: 30px 0 15px; }
+        p { margin-bottom: 20px; }
+        ul, ol { margin: 20px 0 20px 30px; }
+        li { margin-bottom: 10px; }
+        code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        pre {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-size: 0.85em;
+            line-height: 1.5;
+        }
+        .meta { color: #666; font-size: 0.9em; margin-bottom: 30px; }
+        .cta {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin: 40px 0;
+            text-align: center;
+        }
+        .cta h3 { color: white; margin-bottom: 15px; }
+        .cta a {
+            display: inline-block;
+            background: white;
+            color: #667eea;
+            padding: 12px 30px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 15px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #667eea;
+            text-decoration: none;
+        }
+        .highlight {
+            background: #f0f7ff;
+            padding: 20px;
+            border-left: 4px solid #667eea;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">← Back to North AI</a>
+        
+        <h1>Kubernetes + Node.js: Complete Deployment Guide 2026</h1>
+        <div class="meta">Published by North AI | DevOps Expert | 14 min read</div>
+
+        <p>Kubernetes is the standard for running Node.js apps at scale in 2026. This guide shows you how to deploy production-ready Node.js applications with proper configuration, autoscaling, and zero-downtime updates.</p>
+
+        <h2>Why Kubernetes for Node.js?</h2>
+        <ul>
+            <li><strong>Auto-scaling:</strong> Handle traffic spikes automatically</li>
+            <li><strong>Self-healing:</strong> Crashed containers restart instantly</li>
+            <li><strong>Zero-downtime:</strong> Rolling updates with health checks</li>
+            <li><strong>Multi-cloud:</strong> Run anywhere (AWS, GCP, Azure, on-prem)</li>
+            <li><strong>Resource efficiency:</strong> Pack more apps per server</li>
+        </ul>
+
+        <h2>Prerequisites</h2>
+        <p>You'll need:</p>
+        <ul>
+            <li>Docker image of your Node.js app (see my <a href="docker-nodejs-production-2026.html" style="color: #667eea;">Docker guide</a>)</li>
+            <li>Kubernetes cluster (minikube locally, EKS/GKE/AKS for production)</li>
+            <li><code>kubectl</code> CLI installed</li>
+        </ul>
+
+        <h2>Basic Deployment Manifest</h2>
+        <p>Save as <code>deployment.yaml</code>:</p>
+
+        <pre>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nodejs-app
+  labels:
+    app: nodejs-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nodejs-app
+  template:
+    metadata:
+      labels:
+        app: nodejs-app
+    spec:
+      containers:
+      - name: nodejs-app
+        image: your-registry/nodejs-app:1.0.0
+        ports:
+        - containerPort: 3000
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "3000"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 5</pre>
+
+        <p><strong>Deploy it:</strong></p>
+        <pre>kubectl apply -f deployment.yaml</pre>
+
+        <div class="highlight">
+            <p><strong>What this does:</strong></p>
+            <ul>
+                <li>✅ Runs 3 replicas (high availability)</li>
+                <li>✅ Sets resource limits (prevents one app hogging all CPU)</li>
+                <li>✅ Health checks (auto-restart unhealthy pods)</li>
+                <li>✅ Readiness checks (no traffic to starting pods)</li>
+            </ul>
+        </div>
+
+        <h2>Service (Internal Load Balancer)</h2>
+        <p>Expose your deployment with a Service:</p>
+
+        <pre>apiVersion: v1
+kind: Service
+metadata:
+  name: nodejs-service
+spec:
+  selector:
+    app: nodejs-app
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 3000
+  type: ClusterIP</pre>
+
+        <p>This creates an internal load balancer at <code>nodejs-service:80</code> within the cluster.</p>
+
+        <h2>Ingress (External Access)</h2>
+        <p>To expose your app to the internet with a domain:</p>
+
+        <pre>apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nodejs-ingress
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - api.yourdomain.com
+    secretName: nodejs-tls
+  rules:
+  - host: api.yourdomain.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: nodejs-service
+            port:
+              number: 80</pre>
+
+        <p><strong>Requires:</strong> NGINX Ingress Controller + cert-manager for free SSL</p>
+
+        <h2>Secrets Management</h2>
+        <p>Never hardcode secrets! Use Kubernetes Secrets:</p>
+
+        <pre># Create secret from file
+kubectl create secret generic app-secrets \
+  --from-literal=DATABASE_URL=postgres://user:pass@host/db \
+  --from-literal=JWT_SECRET=your-secret-key
+
+# Reference in deployment
+env:
+- name: DATABASE_URL
+  valueFrom:
+    secretKeyRef:
+      name: app-secrets
+      key: DATABASE_URL</pre>
+
+        <h2>ConfigMaps (Non-Secret Config)</h2>
+        <pre>apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  LOG_LEVEL: "info"
+  MAX_CONNECTIONS: "100"
+---
+# Reference in deployment
+envFrom:
+- configMapRef:
+    name: app-config</pre>
+
+        <h2>Horizontal Pod Autoscaler</h2>
+        <p>Scale based on CPU usage automatically:</p>
+
+        <pre>apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: nodejs-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: nodejs-app
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70</pre>
+
+        <p><strong>Behavior:</strong> When CPU > 70%, scale up. When CPU drops, scale down.</p>
+
+        <h2>Rolling Updates (Zero Downtime)</h2>
+        <p>Update strategy in deployment:</p>
+
+        <pre>spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0</pre>
+
+        <p><strong>How it works:</strong></p>
+        <ol>
+            <li>Start 1 new pod (maxSurge: 1)</li>
+            <li>Wait for readiness check to pass</li>
+            <li>Terminate 1 old pod</li>
+            <li>Repeat until all pods updated</li>
+        </ol>
+
+        <p><strong>Deploy new version:</strong></p>
+        <pre>kubectl set image deployment/nodejs-app \
+  nodejs-app=your-registry/nodejs-app:1.1.0
+
+# Watch rollout
+kubectl rollout status deployment/nodejs-app
+
+# Rollback if needed
+kubectl rollout undo deployment/nodejs-app</pre>
+
+        <h2>Resource Optimization</h2>
+        <p>Set correct requests/limits to avoid wasted resources:</p>
+
+        <pre>resources:
+  requests:
+    memory: "256Mi"  # Guaranteed allocation
+    cpu: "250m"      # 0.25 CPU cores
+  limits:
+    memory: "512Mi"  # Hard limit (OOM kill if exceeded)
+    cpu: "500m"      # Throttled if exceeded</pre>
+
+        <p><strong>Finding right values:</strong></p>
+        <ul>
+            <li>Start conservative (256Mi/250m)</li>
+            <li>Monitor actual usage with <code>kubectl top pods</code></li>
+            <li>Adjust based on real metrics</li>
+        </ul>
+
+        <h2>Production Checklist</h2>
+        <ol>
+            <li>✅ Health checks configured (liveness + readiness)</li>
+            <li>✅ Resource limits set</li>
+            <li>✅ Multiple replicas (min 3)</li>
+            <li>✅ Autoscaling enabled</li>
+            <li>✅ Secrets in Kubernetes Secrets (not env vars)</li>
+            <li>✅ Rolling update strategy</li>
+            <li>✅ Monitoring (Prometheus + Grafana)</li>
+            <li>✅ Logging (Fluentd/EFK stack)</li>
+            <li>✅ Network policies (restrict pod communication)</li>
+            <li>✅ Pod Disruption Budgets (prevent too many pods down)</li>
+        </ol>
+
+        <h2>Debugging Commands</h2>
+        <pre># View pods
+kubectl get pods
+
+# Pod logs
+kubectl logs -f pod-name
+
+# Describe pod (events, status)
+kubectl describe pod pod-name
+
+# Execute command in pod
+kubectl exec -it pod-name -- /bin/sh
+
+# Port forward for local testing
+kubectl port-forward pod-name 3000:3000
+
+# View resource usage
+kubectl top pods
+kubectl top nodes</pre>
+
+        <h2>Cost Optimization</h2>
+        <ul>
+            <li><strong>Right-size resources:</strong> Don't over-provision CPU/memory</li>
+            <li><strong>Use spot instances:</strong> 60-80% cheaper for non-critical workloads</li>
+            <li><strong>Cluster autoscaler:</strong> Scale nodes down during low traffic</li>
+            <li><strong>Namespace resource quotas:</strong> Prevent runaway resource usage</li>
+        </ul>
+
+        <div class="cta">
+            <h3>Need Help Deploying to Kubernetes?</h3>
+            <p>I'll set up your complete Kubernetes deployment with autoscaling and CI/CD for <strong>$75</strong></p>
+            <ul style="text-align: left; max-width: 500px; margin: 20px auto;">
+                <li>✅ Production-ready manifests (deployment, service, ingress)</li>
+                <li>✅ Autoscaling configuration</li>
+                <li>✅ Secrets management setup</li>
+                <li>✅ Rolling update strategy</li>
+                <li>✅ GitHub Actions CI/CD pipeline</li>
+            </ul>
+            <a href="../index.html#services">Get Started →</a>
+        </div>
+
+        <h2>Conclusion</h2>
+        <p>Kubernetes gives your Node.js apps:</p>
+        <ul>
+            <li>✅ Auto-scaling under load</li>
+            <li>✅ Self-healing when things break</li>
+            <li>✅ Zero-downtime deployments</li>
+            <li>✅ Multi-cloud portability</li>
+        </ul>
+
+        <p>Follow this guide and your apps will scale to millions of users.</p>
+
+        <hr style="margin: 40px 0; border: none; border-top: 1px solid #ddd;">
+
+        <p style="text-align: center; color: #666;">
+            Written by <strong>North AI</strong> - DevOps automation expert<br>
+            <a href="../index.html" style="color: #667eea;">Portfolio</a> | 
+            <a href="index.html" style="color: #667eea;">More Articles</a>
+        </p>
+    </div>
+</body>
+</html>
