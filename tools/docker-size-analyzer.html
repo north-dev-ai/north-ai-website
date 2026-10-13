@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Docker Image Size Analyzer - Free Tool | North AI</title>
+    <meta name="description" content="Free Docker image size analyzer. Understand what's making your Docker images large and get optimization recommendations to reduce image size by 50-80%.">
+    <meta name="keywords" content="Docker image size, Docker optimization, reduce Docker size, Docker layers, container optimization">
+    <script src="/north-ai-website/js/counter.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #2d3748;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #718096;
+            font-size: 1.1em;
+            margin-bottom: 30px;
+        }
+        .input-section {
+            background: #f7fafc;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #2d3748;
+        }
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            min-height: 200px;
+            resize: vertical;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .example {
+            font-size: 0.9em;
+            color: #718096;
+            margin-top: 5px;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        button:active {
+            background: #4c5fc7;
+        }
+        #results {
+            margin-top: 30px;
+        }
+        .result-card {
+            background: #f7fafc;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+        .result-card h3 {
+            color: #2d3748;
+            margin-bottom: 15px;
+        }
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .metric:last-child {
+            border-bottom: none;
+        }
+        .metric-label {
+            font-weight: 600;
+            color: #4a5568;
+        }
+        .metric-value {
+            color: #2d3748;
+            font-family: 'Courier New', monospace;
+        }
+        .warning {
+            background: #fffaf0;
+            border-left: 4px solid #ed8936;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success {
+            background: #f0fff4;
+            border-left: 4px solid #48bb78;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .recommendation {
+            background: #e6fffa;
+            border-left: 4px solid #38b2ac;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+        }
+        .recommendation h4 {
+            color: #2c7a7b;
+            margin-bottom: 8px;
+        }
+        .recommendation ul {
+            margin-left: 20px;
+            color: #2d3748;
+        }
+        .recommendation li {
+            margin: 5px 0;
+        }
+        .cta {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 40px;
+        }
+        .cta h3 {
+            color: white;
+            margin-bottom: 10px;
+        }
+        .cta a {
+            color: white;
+            text-decoration: underline;
+            font-weight: 600;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 30px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Docker Image Size Analyzer</h1>
+        <p class="subtitle">Paste your Dockerfile and get instant recommendations to reduce image size by 50-80%</p>
+
+        <div class="input-section">
+            <label for="dockerfile">Paste Your Dockerfile:</label>
+            <textarea id="dockerfile" placeholder="FROM node:18
+COPY package*.json ./
+RUN npm install
+COPY . .
+CMD [&quot;node&quot;, &quot;index.js&quot;]"></textarea>
+            <p class="example">Paste your entire Dockerfile content above</p>
+            <button onclick="analyzeDockerfile()">Analyze Size & Get Recommendations</button>
+        </div>
+
+        <div id="results"></div>
+
+        <div class="cta">
+            <h3>Need Help Optimizing Your Docker Images?</h3>
+            <p>Get professional Docker optimization services for $75</p>
+            <p style="margin-top: 15px;">
+                <a href="../contact.html">Contact me for custom optimization →</a>
+            </p>
+        </div>
+
+        <a href="../index.html" class="back-link">← Back to Home</a>
+    </div>
+
+    <script>
+        function analyzeDockerfile() {
+            const dockerfile = document.getElementById('dockerfile').value.trim();
+            const resultsDiv = document.getElementById('results');
+
+            if (!dockerfile) {
+                resultsDiv.innerHTML = '<div class="warning">⚠️ Please paste a Dockerfile to analyze</div>';
+                return;
+            }
+
+            const lines = dockerfile.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#'));
+            
+            // Analysis
+            const analysis = {
+                totalLayers: 0,
+                fromImage: '',
+                estimatedSize: 0,
+                issues: [],
+                recommendations: []
+            };
+
+            // Parse Dockerfile
+            lines.forEach(line => {
+                const cmd = line.split(/\s+/)[0].toUpperCase();
+                
+                if (cmd === 'FROM') {
+                    analysis.fromImage = line.substring(5).trim();
+                    // Estimate base image size
+                    if (line.includes(':alpine')) {
+                        analysis.estimatedSize += 50;
+                    } else if (line.includes('-slim')) {
+                        analysis.estimatedSize += 150;
+                    } else if (line.includes('node:')) {
+                        analysis.estimatedSize += 900;
+                    } else if (line.includes('python:')) {
+                        analysis.estimatedSize += 800;
+                    } else {
+                        analysis.estimatedSize += 500;
+                    }
+                }
+
+                if (['RUN', 'COPY', 'ADD', 'FROM'].includes(cmd)) {
+                    analysis.totalLayers++;
+                }
+
+                if (cmd === 'RUN') {
+                    analysis.estimatedSize += 50; // Rough estimate per RUN
+                    if (line.includes('apt-get') || line.includes('apk add')) {
+                        analysis.estimatedSize += 100;
+                    }
+                    if (line.includes('npm install') && !line.includes('--production')) {
+                        analysis.issues.push('Installing npm dependencies without --production flag (includes devDependencies)');
+                        analysis.estimatedSize += 200;
+                    }
+                    if (!line.includes('&&') && lines.filter(l => l.startsWith('RUN')).length > 3) {
+                        analysis.issues.push('Multiple RUN commands increase layer count (combine with &&)');
+                    }
+                }
+
+                if (cmd === 'COPY' && line.includes('COPY . .')) {
+                    analysis.issues.push('Copying entire directory (.) may include unnecessary files');
+                    analysis.estimatedSize += 100;
+                }
+            });
+
+            // Check for optimizations
+            const hasMultiStage = dockerfile.includes('FROM') && dockerfile.split('FROM').length > 2;
+            const hasAlpine = dockerfile.includes('alpine');
+            const hasNodemodulesCopy = dockerfile.toLowerCase().includes('node_modules');
+            const hasDockerignore = false; // Can't check from here
+
+            if (!hasMultiStage && analysis.estimatedSize > 500) {
+                analysis.recommendations.push({
+                    title: 'Use Multi-Stage Builds',
+                    items: [
+                        'Reduce final image size by 60-80%',
+                        'Separate build dependencies from runtime',
+                        'See our guide: <a href="../blog/docker-multistage-builds-2026.html">Docker Multi-Stage Builds</a>'
+                    ]
+                });
+            }
+
+            if (!hasAlpine && analysis.fromImage) {
+                analysis.recommendations.push({
+                    title: 'Switch to Alpine Base Image',
+                    items: [
+                        `Change ${analysis.fromImage} to ${analysis.fromImage.split(':')[0]}:alpine`,
+                        'Reduce base image from ~900MB to ~50MB',
+                        'Alpine images are production-ready and secure'
+                    ]
+                });
+            }
+
+            if (analysis.totalLayers > 10) {
+                analysis.recommendations.push({
+                    title: 'Reduce Layer Count',
+                    items: [
+                        `Current layers: ${analysis.totalLayers} (high)`,
+                        'Combine RUN commands with && operators',
+                        'Each layer adds to final image size'
+                    ]
+                });
+            }
+
+            if (hasNodemodulesCopy) {
+                analysis.recommendations.push({
+                    title: 'Avoid Copying node_modules',
+                    items: [
+                        'Never COPY node_modules from host',
+                        'Always RUN npm install inside container',
+                        'Use .dockerignore to exclude node_modules'
+                    ]
+                });
+            }
+
+            analysis.recommendations.push({
+                title: 'Create .dockerignore File',
+                items: [
+                    'Exclude: node_modules, .git, *.md, tests',
+                    'Reduces build context size',
+                    'Faster builds and smaller images'
+                ]
+            });
+
+            if (!dockerfile.includes('USER')) {
+                analysis.recommendations.push({
+                    title: 'Run as Non-Root User',
+                    items: [
+                        'Add USER statement before CMD',
+                        'Improves security (doesn\'t affect size)',
+                        'Best practice for production'
+                    ]
+                });
+            }
+
+            // Display results
+            let html = '<div class="result-card">';
+            html += '<h3>📊 Image Analysis</h3>';
+            html += `<div class="metric"><span class="metric-label">Base Image:</span><span class="metric-value">${analysis.fromImage || 'Not specified'}</span></div>`;
+            html += `<div class="metric"><span class="metric-label">Total Layers:</span><span class="metric-value">${analysis.totalLayers}</span></div>`;
+            html += `<div class="metric"><span class="metric-label">Estimated Size:</span><span class="metric-value">~${analysis.estimatedSize}MB</span></div>`;
+            
+            const optimizedSize = hasMultiStage ? Math.round(analysis.estimatedSize * 0.3) : 
+                                  hasAlpine ? Math.round(analysis.estimatedSize * 0.4) :
+                                  Math.round(analysis.estimatedSize * 0.5);
+            html += `<div class="metric"><span class="metric-label">Potential After Optimization:</span><span class="metric-value">~${optimizedSize}MB (${Math.round((1 - optimizedSize/analysis.estimatedSize) * 100)}% reduction)</span></div>`;
+            html += '</div>';
+
+            if (analysis.issues.length > 0) {
+                html += '<div class="result-card">';
+                html += '<h3>⚠️ Issues Found</h3>';
+                analysis.issues.forEach(issue => {
+                    html += `<div class="warning">${issue}</div>`;
+                });
+                html += '</div>';
+            } else {
+                html += '<div class="success">✅ No major issues found!</div>';
+            }
+
+            if (analysis.recommendations.length > 0) {
+                html += '<div class="result-card">';
+                html += '<h3>💡 Optimization Recommendations</h3>';
+                analysis.recommendations.forEach(rec => {
+                    html += '<div class="recommendation">';
+                    html += `<h4>${rec.title}</h4>`;
+                    html += '<ul>';
+                    rec.items.forEach(item => {
+                        html += `<li>${item}</li>`;
+                    });
+                    html += '</ul>';
+                    html += '</div>';
+                });
+                html += '</div>';
+            }
+
+            // Size comparison
+            html += '<div class="result-card">';
+            html += '<h3>📈 Size Comparison</h3>';
+            html += `<div class="metric"><span class="metric-label">Current (estimated):</span><span class="metric-value" style="color: #e53e3e;">${analysis.estimatedSize}MB</span></div>`;
+            html += `<div class="metric"><span class="metric-label">With Alpine base:</span><span class="metric-value" style="color: #ed8936;">${Math.round(analysis.estimatedSize * 0.4)}MB</span></div>`;
+            html += `<div class="metric"><span class="metric-label">With multi-stage build:</span><span class="metric-value" style="color: #48bb78;">${Math.round(analysis.estimatedSize * 0.3)}MB</span></div>`;
+            html += `<div class="metric"><span class="metric-label">Fully optimized:</span><span class="metric-value" style="color: #38b2ac;"><strong>${Math.round(analysis.estimatedSize * 0.2)}MB</strong></span></div>`;
+            html += '</div>';
+
+            resultsDiv.innerHTML = html;
+            resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    </script>
+</body>
+</html>
