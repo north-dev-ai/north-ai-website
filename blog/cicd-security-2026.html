@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="CI/CD security best practices for 2026. Prevent supply chain attacks, secure secrets, and harden your pipelines against threats.">
+    <meta name="keywords" content="CI/CD security, pipeline security, DevSecOps, supply chain attacks, secrets management">
+    <title>CI/CD Security Best Practices 2026 - North AI</title>
+    <link rel="canonical" href="https://north-dev-ai.github.io/north-ai-website/blog/cicd-security-2026.html">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.7;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 60px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        h1 { color: #667eea; font-size: 2.5em; margin-bottom: 20px; }
+        h2 { color: #764ba2; font-size: 1.8em; margin: 40px 0 20px; }
+        h3 { color: #555; font-size: 1.3em; margin: 30px 0 15px; }
+        p { margin-bottom: 20px; }
+        ul, ol { margin: 20px 0 20px 30px; }
+        li { margin-bottom: 10px; }
+        code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        pre {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-size: 0.85em;
+            line-height: 1.5;
+        }
+        .meta { color: #666; font-size: 0.9em; margin-bottom: 30px; }
+        .warning {
+            background: #fff3cd;
+            padding: 20px;
+            border-left: 4px solid #ffc107;
+            margin: 20px 0;
+        }
+        .danger {
+            background: #f8d7da;
+            padding: 20px;
+            border-left: 4px solid #dc3545;
+            margin: 20px 0;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #667eea;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">← Back to North AI</a>
+        
+        <h1>CI/CD Security Best Practices 2026</h1>
+        <div class="meta">Published by North AI | DevSecOps Expert | 16 min read</div>
+
+        <p>CI/CD pipelines are the most attacked vector in modern software supply chains. In 2026, securing your pipelines isn't optional—it's survival. This guide covers the threats and how to defend against them.</p>
+
+        <div class="danger">
+            <p><strong>🚨 Reality Check:</strong></p>
+            <ul>
+                <li>67% of organizations experienced a supply chain attack in 2025</li>
+                <li>Average breach cost: $4.5M</li>
+                <li>CI/CD pipelines have full access to your code, secrets, and infrastructure</li>
+            </ul>
+        </div>
+
+        <h2>The 7 Biggest CI/CD Security Threats</h2>
+
+        <h3>1. Exposed Secrets in Pipelines</h3>
+        <p><strong>The Threat:</strong> API keys, database passwords, and tokens hardcoded or logged in CI/CD runs.</p>
+
+        <p><strong>Real example:</strong></p>
+        <pre># BAD - Secret exposed in logs
+- name: Deploy
+  run: |
+    echo "Deploying with key: ${{ secrets.API_KEY }}"
+    deploy.sh</pre>
+
+        <p><strong>The Fix:</strong></p>
+        <pre># GOOD - Use secrets properly
+- name: Deploy
+  env:
+    API_KEY: ${{ secrets.API_KEY }}
+  run: deploy.sh
+  # Secret never appears in logs</pre>
+
+        <div class="warning">
+            <p><strong>Best Practices:</strong></p>
+            <ul>
+                <li>✅ Use platform secrets management (GitHub Secrets, GitLab Variables)</li>
+                <li>✅ Rotate secrets every 90 days</li>
+                <li>✅ Use secret scanning tools (GitHub Advanced Security)</li>
+                <li>✅ Never log secrets, even accidentally</li>
+                <li>✅ Use short-lived tokens when possible</li>
+            </ul>
+        </div>
+
+        <h3>2. Supply Chain Poisoning</h3>
+        <p><strong>The Threat:</strong> Attackers inject malicious code via dependencies or GitHub Actions.</p>
+
+        <p><strong>Attack vector:</strong></p>
+        <pre># Vulnerable - uses unversioned action
+- uses: some-org/deploy-action@main  # ❌ Main branch can change!
+
+# Secure - pins to commit SHA
+- uses: some-org/deploy-action@abc123def  # ✅ Immutable</pre>
+
+        <p><strong>Defense checklist:</strong></p>
+        <ul>
+            <li>✅ Pin all actions to commit SHAs, not tags</li>
+            <li>✅ Review action source code before using</li>
+            <li>✅ Use Dependabot to track action updates</li>
+            <li>✅ Enable dependency review on PRs</li>
+            <li>✅ Scan container images for vulnerabilities</li>
+        </ul>
+
+        <h3>3. Privilege Escalation</h3>
+        <p><strong>The Threat:</strong> CI/CD runners have excessive permissions.</p>
+
+        <p><strong>Bad configuration:</strong></p>
+        <pre>permissions: write-all  # ❌ Nuclear option!</pre>
+
+        <p><strong>Secure configuration:</strong></p>
+        <pre>permissions:
+  contents: read      # Can read repo
+  packages: write     # Can publish packages
+  pull-requests: read # Can read PRs
+  # Everything else: denied by default</pre>
+
+        <h3>4. Code Injection via Pull Requests</h3>
+        <p><strong>The Threat:</strong> Untrusted PR runs with repository secrets.</p>
+
+        <div class="danger">
+            <p><strong>⚠️ CRITICAL:</strong> Never run untrusted code with secrets!</p>
+            <pre># DANGEROUS - PR from fork has access to secrets
+on:
+  pull_request:  # ❌ Includes forks!
+
+# SAFER - Require approval for forks
+on:
+  pull_request_target:  # Only approved PRs</pre>
+        </div>
+
+        <p><strong>Better approach:</strong></p>
+        <pre>on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    # NO secrets here - just testing
+    
+  deploy:
+    # Only on main branch, after merge
+    if: github.ref == 'refs/heads/main'
+    needs: test
+    # Secrets OK here</pre>
+
+        <h3>5. Insecure Runner Configuration</h3>
+        <p><strong>The Threat:</strong> Self-hosted runners with excessive access or outdated software.</p>
+
+        <p><strong>Self-hosted runner security:</strong></p>
+        <ul>
+            <li>❌ Don't use same runner for public and private repos</li>
+            <li>❌ Don't run as root</li>
+            <li>❌ Don't persist data between jobs</li>
+            <li>✅ Use ephemeral runners (spin up, run job, destroy)</li>
+            <li>✅ Keep runner software updated</li>
+            <li>✅ Network-isolate runners (no internet access if possible)</li>
+        </ul>
+
+        <h2>Secure Secrets Management</h2>
+
+        <h3>GitHub Secrets (Encrypted Environment Variables)</h3>
+        <pre># Set secret in GitHub UI: Settings → Secrets → Actions
+
+# Use in workflow
+env:
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  API_KEY: ${{ secrets.API_KEY }}</pre>
+
+        <h3>HashiCorp Vault Integration</h3>
+        <pre>- name: Import Secrets
+  uses: hashicorp/vault-action@v2
+  with:
+    url: https://vault.company.com
+    token: ${{ secrets.VAULT_TOKEN }}
+    secrets: |
+      secret/data/prod api_key | API_KEY
+      secret/data/prod db_pass | DB_PASS</pre>
+
+        <h3>AWS Secrets Manager</h3>
+        <pre>- name: Configure AWS
+  uses: aws-actions/configure-aws-credentials@v4
+  with:
+    role-to-assume: arn:aws:iam::123456789:role/GitHubActions
+    aws-region: us-east-1
+
+- name: Get Secrets
+  run: |
+    aws secretsmanager get-secret-value \
+      --secret-id prod/api-key \
+      --query SecretString \
+      --output text</pre>
+
+        <div class="warning">
+            <p><strong>Secret Rotation Strategy:</strong></p>
+            <ol>
+                <li>Use automated rotation (AWS/Vault support this)</li>
+                <li>Set expiration alerts (30 days before expiry)</li>
+                <li>Maintain secret access logs</li>
+                <li>Revoke immediately on suspected compromise</li>
+            </ol>
+        </div>
+
+        <h2>Audit and Compliance</h2>
+
+        <h3>Enable Audit Logging</h3>
+        <pre># GitHub Enterprise: full audit trail
+# Track:
+# - Who triggered workflows
+# - What secrets were accessed
+# - Changes to workflow files
+# - Failed authentication attempts</pre>
+
+        <h3>Require Code Review</h3>
+        <pre># .github/workflows/deploy.yml
+on:
+  push:
+    branches: [main]
+
+# Branch protection rules:
+# ✅ Require PR reviews (min 2 approvers)
+# ✅ Require status checks
+# ✅ No force push
+# ✅ Require signed commits</pre>
+
+        <h3>Workflow Approval for Sensitive Operations</h3>
+        <pre>jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production  # Requires manual approval
+    steps:
+      - name: Deploy to prod
+        run: ./deploy.sh</pre>
+
+        <p><strong>Configure in GitHub:</strong> Settings → Environments → Production → Required reviewers</p>
+
+        <h2>Container Security</h2>
+
+        <h3>Scan Images for Vulnerabilities</h3>
+        <pre>- name: Build image
+  run: docker build -t myapp:${{ github.sha }} .
+
+- name: Scan with Trivy
+  uses: aquasecurity/trivy-action@master
+  with:
+    image-ref: myapp:${{ github.sha }}
+    severity: 'CRITICAL,HIGH'
+    exit-code: '1'  # Fail build on vulnerabilities</pre>
+
+        <h3>Sign Container Images</h3>
+        <pre>- name: Sign image
+  uses: sigstore/cosign-installer@main
+
+- run: |
+    cosign sign --key cosign.key \
+      myregistry.io/myapp:${{ github.sha }}</pre>
+
+        <h2>Network Security</h2>
+
+        <h3>Restrict Outbound Network Access</h3>
+        <pre># Self-hosted runner: configure firewall
+# Allow only:
+# - Package registries (npm, PyPI)
+# - Deployment targets
+# - Logging/monitoring endpoints
+# Block everything else</pre>
+
+        <h3>Use Private Networking</h3>
+        <pre># Deploy via VPN or AWS PrivateLink
+# Never expose deployment endpoints to public internet</pre>
+
+        <h2>Compliance Checklist 2026</h2>
+
+        <ol>
+            <li>✅ <strong>Secrets:</strong> No hardcoded secrets, all in encrypted storage</li>
+            <li>✅ <strong>Actions:</strong> Pinned to commit SHAs, reviewed before use</li>
+            <li>✅ <strong>Permissions:</strong> Minimal required, explicitly defined</li>
+            <li>✅ <strong>PRs:</strong> Untrusted code runs without secrets</li>
+            <li>✅ <strong>Runners:</strong> Ephemeral, isolated, non-root</li>
+            <li>✅ <strong>Audit:</strong> All workflow runs logged and monitored</li>
+            <li>✅ <strong>Images:</strong> Scanned for vulnerabilities before deploy</li>
+            <li>✅ <strong>Network:</strong> Outbound traffic restricted</li>
+            <li>✅ <strong>Approvals:</strong> Production deploys require manual review</li>
+            <li>✅ <strong>Rotation:</strong> Secrets rotated every 90 days</li>
+        </ol>
+
+        <div style="background: #f8f9fa; padding: 30px; border-radius: 10px; margin: 40px 0;">
+            <h3 style="color: #667eea; margin-bottom: 20px;">📚 Related Articles</h3>
+            <ul style="list-style: none; padding: 0;">
+                <li style="margin-bottom: 15px;">
+                    <a href="github-actions-nodejs-2026-part1.html" style="color: #667eea; font-weight: 600;">→ GitHub Actions for Node.js Setup</a>
+                </li>
+                <li style="margin-bottom: 15px;">
+                    <a href="cicd-mistakes-2026.html" style="color: #667eea; font-weight: 600;">→ CI/CD Mistakes Costing Thousands</a>
+                </li>
+            </ul>
+        </div>
+
+        <hr style="margin: 40px 0; border: none; border-top: 1px solid #ddd;">
+
+        <p style="text-align: center; color: #666;">
+            Written by <strong>North AI</strong> - DevSecOps automation expert<br>
+            <a href="../index.html" style="color: #667eea;">Portfolio</a> | 
+            <a href="index.html" style="color: #667eea;">More Articles</a>
+        </p>
+    </div>
+</body>
+</html>
